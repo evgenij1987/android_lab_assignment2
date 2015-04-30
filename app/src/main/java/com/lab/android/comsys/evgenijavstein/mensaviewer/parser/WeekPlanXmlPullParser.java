@@ -9,7 +9,6 @@ import com.lab.android.comsys.evgenijavstein.mensaviewer.model.WeekPlan;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,19 +59,15 @@ public class WeekPlanXmlPullParser  {
 
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
 
-             name = parser.getName();
+            name = parser.getName();
             if(parser.getAttributeCount()>0) {
                  attributeName = parser.getAttributeName(0);
                  attributeValue = parser.getAttributeValue(0);
             }
             // Go through the whole document; If you detect H3 class="default-headline" accept it as
             //marker for a single day plan, try read a day plan if it fails, proceed looking for next marker
-            if (name!=null&&
-                attributeName!=null&
-                attributeValue!=null&&
-                name.equalsIgnoreCase("h3")&&
-                attributeName.equalsIgnoreCase("class")&&
-                attributeValue.equalsIgnoreCase("default-headline")) {
+            if (equalsIfNotNull(name, "h3")&& attributeEqualsIfNotNull(attributeName, attributeValue, "class", "default-headline")){
+
 
                 try {
                     dayPlans.add(readDayPlan(parser));
@@ -109,10 +104,15 @@ public class WeekPlanXmlPullParser  {
         String attributeName=null;
         String attributeValue=null;
 
+        int event;
         //state 1: headline of the day! should be  7 times here
-        while (parser.next() != XmlPullParser.END_DOCUMENT) {
-
+        while ((event=parser.next())!= XmlPullParser.END_DOCUMENT) {
             tagName = parser.getName();
+            if(event==XmlPullParser.END_TAG&&equalsIfNotNull(tagName,"div")){
+                break;
+            }
+
+
             if(parser.getAttributeCount()>=2){
                 attributeName=parser.getAttributeName(1);
                 attributeValue=parser.getAttributeValue(1);
@@ -120,19 +120,17 @@ public class WeekPlanXmlPullParser  {
 
 
             if (equalsIfNotNull(tagName, "a")) {
+                if(event!=XmlPullParser.END_TAG)
                 header = nextText(parser);
                 dayPlan.setHeader(header);
-                return dayPlan;
-            }else if(tagName!=null&&
-                        tagName.equalsIgnoreCase("div")&&
-                        attributeNotNullEquals(attributeName, attributeValue,"class", "default-panel")){
+
+            }else if(equalsIfNotNull(tagName, "div")&&
+                        attributeEqualsIfNotNull(attributeName, attributeValue, "class", "default-panel")){
 
                 menues=readMenues(parser);//might fail, then whole dayplan is skipped, see exception handling one level above
                 extras=readExtras(parser);
                 dayPlan.setMenues(menues);
                 dayPlan.setExtras(extras);
-            }else{
-                //skip(parser);
             }
 
         }
@@ -142,8 +140,14 @@ public class WeekPlanXmlPullParser  {
 
 
     private String nextText(XmlPullParser parser)throws XmlPullParserException, IOException{
-        if(parser.next()==XmlPullParser.TEXT){
-            return parser.getText();
+        String text;
+        int event=parser.next();
+        if((event==XmlPullParser.TEXT)){
+
+            text=parser.getText();
+            return text.replaceAll("\\s{2,}", "");//remove all multiple occurences of whitespace/escape characters
+        }else{
+
         }
         return null;
     }
@@ -152,7 +156,8 @@ public class WeekPlanXmlPullParser  {
         return(tagName!=null&&tagName.equalsIgnoreCase(name));
     }
 
-    boolean attributeNotNullEquals(String attributeName, String attributeValue, String name, String value){
+    boolean attributeEqualsIfNotNull(String attributeName, String attributeValue, String name, String value){
+
         return(attributeName!=null&&
                 attributeValue!=null&&
                 attributeName.equalsIgnoreCase(name)&&
@@ -161,29 +166,36 @@ public class WeekPlanXmlPullParser  {
 
 
 
-    private void readAndStopBySpecifiedTable(XmlPullParser parser, String table)throws XmlPullParserException, IOException{
-        while(parser.next()!=XmlPullParser.END_DOCUMENT);
-        if(equalsIfNotNull(parser.getName(),"table")&&
-                attributeNotNullEquals(parser.getAttributeName(0), parser.getAttributeValue(0),"class",table )){
-            return;
+    private void readAndStopBySpecifiedTable(XmlPullParser parser, String table, int depth)throws XmlPullParserException, IOException{
+        while(parser.next()!=XmlPullParser.END_DOCUMENT&&depth>0) {
+            if (equalsIfNotNull(parser.getName(), "table") &&
+                    attributeEqualsIfNotNull(parser.getAttributeName(0), parser.getAttributeValue(0), "class", table))
+                return;
+            depth--;
         }
     }
 
- private ArrayList<Menu> readMenues(XmlPullParser parser)throws XmlPullParserException, IOException{
+ private ArrayList<Menu> readMenues(XmlPullParser parser )throws XmlPullParserException, IOException{
      ArrayList<Menu> menues=new ArrayList<Menu>();
+
      //state 2: default-panel
-
-     readAndStopBySpecifiedTable(parser, "menues");
-
+     readAndStopBySpecifiedTable(parser, "menues",2);
+            int event;
           //state 3: menues table
-            while(parser.next()!=XmlPullParser.END_TAG){
+            while((event=parser.next())!=XmlPullParser.END_DOCUMENT){
+                String tagName=parser.getName();
+                if(event==XmlPullParser.END_TAG&&equalsIfNotNull(tagName,"table")){
+
+                    break;
+                }//get single menues untill you detect end of table
                 //if we are here we are inside the table
+
 
                 if(equalsIfNotNull(parser.getName(),"tr")){//single row=single menu
                     menues.add(readSingleMenu(parser));
-                }else{
-                    skip(parser);
                 }
+
+
 
 
             }
@@ -193,25 +205,27 @@ public class WeekPlanXmlPullParser  {
 
  private  Menu readSingleMenu(XmlPullParser parser)throws XmlPullParserException, IOException{
      Menu menu=new Menu();
+    String tagName;
+     int event;
+     while( (event=parser.next())!=XmlPullParser.END_DOCUMENT){
+         tagName=parser.getName();
+
+         if(event==XmlPullParser.END_TAG&&equalsIfNotNull(tagName,"tr")){
+             break;
+         }
 
 
-     while(parser.next()!=XmlPullParser.END_TAG){
-
-         if(parser.getName().equals("td")&&
-         parser.getAttributeName(0).equalsIgnoreCase("class")&&
-         parser.getAttributeValue(0).equalsIgnoreCase("category")){
+         if(parser.getAttributeCount()>0)
+         if(equalsIfNotNull(parser.getName(),"td")&&
+            attributeEqualsIfNotNull(parser.getAttributeName(0),parser.getAttributeValue(0),"class","category")){
 
            menu.setCategory(nextText(parser));
-         }else if(parser.getName().equals("td")&&
-                 parser.getAttributeName(0).equalsIgnoreCase("class")&&
-                 parser.getAttributeValue(0).equalsIgnoreCase("menue")){
+         }else if(equalsIfNotNull(parser.getName(),"td")&&
+                 attributeEqualsIfNotNull(parser.getAttributeName(0),parser.getAttributeValue(0),"class","menue")){
           menu.setMenu(nextText(parser));
-         }else if(parser.getName().equals("td")&&
-                 parser.getAttributeName(0).equalsIgnoreCase("class")&&
-                 parser.getAttributeValue(0).equalsIgnoreCase("price")){
+         }else if(equalsIfNotNull(parser.getName(),"td")&&
+                 attributeEqualsIfNotNull(parser.getAttributeName(0),parser.getAttributeValue(0),"class","price")){
              menu.setPrice(nextText(parser));
-         }else{
-             skip(parser);
          }
 
 
@@ -222,21 +236,24 @@ public class WeekPlanXmlPullParser  {
     private Extra readSingleExtra(XmlPullParser parser)throws XmlPullParserException, IOException {
 
         Extra extra = new Extra();
+        String tagName;
+        int event;
+        while ((event=parser.next()) != XmlPullParser.END_DOCUMENT) {
 
-        while (parser.next() != XmlPullParser.END_TAG) {
+            tagName=parser.getName();
 
-            if (parser.getName().equals("td") &&
-                    parser.getAttributeName(0).equalsIgnoreCase("class") &&
-                    parser.getAttributeValue(0).equalsIgnoreCase("category")) {
+            if(event==XmlPullParser.END_TAG&&equalsIfNotNull(tagName,"tr")){
+                break;
+            }
+            if(parser.getAttributeCount()>0)
+            if (equalsIfNotNull(parser.getName(),"td")&&
+                    attributeEqualsIfNotNull(parser.getAttributeName(0),parser.getAttributeValue(0),"class","category")) {
 
                 extra.setCategory(nextText(parser));
-            } else if (parser.getName().equals("td") &&
-                    parser.getAttributeName(0).equalsIgnoreCase("class") &&
-                    parser.getAttributeValue(0).equalsIgnoreCase("extra")) {
+            } else if (equalsIfNotNull(parser.getName(),"td")&&
+                    attributeEqualsIfNotNull(parser.getAttributeName(0),parser.getAttributeValue(0),"class","extra")) {
                 extra.setExtra(nextText(parser));
 
-            } else {
-                skip(parser);
             }
 
         }
@@ -245,37 +262,28 @@ public class WeekPlanXmlPullParser  {
 
  private ArrayList<Extra> readExtras(XmlPullParser parser) throws XmlPullParserException, IOException{
      ArrayList<Extra> extras=new ArrayList<Extra>();
-     readAndStopBySpecifiedTable(parser, "extras");
-    //state 4: extras table
-     while(parser.next()!=XmlPullParser.END_TAG){
-         //if we are here we are inside the table
+     String tagName;
 
-         if(parser.getName().equalsIgnoreCase("tr")){//single row=single menu
+     readAndStopBySpecifiedTable(parser, "extras",2);
+    //state 4: extras table
+     int event;
+     while((event=parser.next())!=XmlPullParser.END_DOCUMENT){
+         tagName=parser.getName();
+         //if we are here we are inside the table
+         if(event==XmlPullParser.END_TAG&&equalsIfNotNull(tagName,"table")){
+
+             break;
+         }//get single menues untill you detect end of table
+
+         if(equalsIfNotNull(tagName,"tr")){//single row=single menu
              extras.add(readSingleExtra(parser));
-         }else{
-             skip(parser);
          }
+
      }
      return extras;
  }
 
 
-    private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
-        if (parser.getEventType() != XmlPullParser.START_TAG) {
-          //  throw new IllegalStateException();
-        }
-        int depth = 1;
-        while (depth != 0) {
-            switch (parser.next()) {
-                case XmlPullParser.END_TAG:
-                    depth--;
-                    break;
-                case XmlPullParser.START_TAG:
-                    depth++;
-                    break;
-            }
-        }
-    }
 
     /**
      * Helper method during development
