@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="match_parent"
+        android:id="@+id/category"
+        android:padding="10dp"
+        android:textSize="24sp"
+        android:background="@color/blue_color"
+        android:textColor="@color/list_font_white"
+        android:alpha="0.8" />
+
+    <TextView
+        android:layout_weight="5"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:id="@+id/dish"
+        android:padding="10dp"
+        android:textSize="24sp" />
+
+    <TextView
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:id="@+id/price"
+        android:padding="10dp"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:background="@color/light_gray_color"
+        android:alpha="0.9" />
+</LinearLayout>

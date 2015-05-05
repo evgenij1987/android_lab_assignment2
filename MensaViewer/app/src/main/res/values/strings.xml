@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">MensaViewer</string>
+    <string name="information">More information</string>
+    <string name="refresh">Refresh</string>
+    <string name="message">This application is an Android application for RWTH Mensa Resource. Click below to learn more!</string>
+    <string name="notnow">Not Now</string>
+    <string name="visitgitlab">Visit Group Page</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- mensa URLs-->
+    <string name="mensa_acadamica_url">http://www.studentenwerk-aachen.de/speiseplaene/academica-w-en.html</string>
+    <string name="mensa_ahorn_url">http://www.studentenwerk-aachen.de/speiseplaene/ahornstrasse-w-en.html</string>
+    <string name="mensa_templergraben_url">http://www.studentenwerk-aachen.de/speiseplaene/templergraben-w-en.html</string>
+    <string name="mensa_bayernalle_url">http://www.studentenwerk-aachen.de/speiseplaene/bayernallee-w-en.html</string>
+    <string name="mensa_vita_url">http://www.studentenwerk-aachen.de/speiseplaene/vita-w-en.html</string>
+
+    <string name="mensa_academica">Mensa Academica</string>
+    <string name="mensa_ahorn">Mensa Ahornstraße</string>
+    <string name="mensa_templergraben">Mensa Bistro Templergraben</string>
+    <string name="mensa_bayernallee">Mensa Bayernallee</string>
+    <string name="mensa_vita">Mensa Vita</string>
+
+    <string name="group_url">https://laboratory.comsys.rwth-aachen.de/groups/evgenijandkate</string>
+
+</resources>

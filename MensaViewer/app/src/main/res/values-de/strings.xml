@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mensa_acadamica_url">http://www.studentenwerk-aachen.de/speiseplaene/academica-w.html</string>
+    <string name="mensa_ahorn_url">http://www.studentenwerk-aachen.de/speiseplaene/ahornstrasse-w.html</string>
+    <string name="mensa_templergraben_url">http://www.studentenwerk-aachen.de/speiseplaene/templergraben-w.html</string>
+    <string name="mensa_bayernalle_url">http://www.studentenwerk-aachen.de/speiseplaene/bayernallee-w.html</string>
+    <string name="mensa_vita_url">http://www.studentenwerk-aachen.de/speiseplaene/vita-w.html</string>
+
+</resources>
